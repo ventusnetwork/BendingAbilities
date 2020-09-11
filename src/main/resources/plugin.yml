@@ -1,0 +1,7 @@
+name: BendingAbilities
+version: ${project.version}
+main: net.saifs.bendingabilities.BendingAbilities
+api-version: 1.13
+authors: [Saif]
+website: https://saif.blakwurm.com/
+depend: Vault

@@ -28,6 +28,40 @@ public class PlayerManager {
         return abilities;
     }
 
+    public List<Ability> getBuyableAbilities(Player player) {
+        List<Ability> abilities = new ArrayList<>();
+        for (List<Ability> requiredList : BendingAbilities.abilitiesMap.keySet()) {
+            boolean meetsRequirement = true;
+            for (Ability required : requiredList) {
+                if (!hasAbilityAccess(player, required)) {
+                    meetsRequirement = false;
+                }
+            }
+            if (meetsRequirement) {
+                for (Ability reward : BendingAbilities.abilitiesMap.get(requiredList)) {
+                    if (!hasAbilityAccess(player, reward)) {
+                        abilities.add(reward);
+                    }
+                }
+            }
+        }
+        return abilities;
+    }
+
+    public List<Ability> getUnavailableAbilities(Player player) {
+        List<Ability> abilities = new ArrayList<>();
+        List<Ability> buyable = getBuyableAbilities(player);
+        List<Ability> allowed = getAllowedAbilities(player);
+
+        for (Ability ability : CoreAbility.getAbilities()) {
+            if (!allowed.contains(ability) && !buyable.contains(ability)) {
+                abilities.add(ability);
+            }
+        }
+
+        return abilities;
+    }
+
     public int getAbilityPoints(Player player) {
         BADataFile dataFile = getPlayerDataFile(player);
         return dataFile.getConfig().getInt("ability-points");

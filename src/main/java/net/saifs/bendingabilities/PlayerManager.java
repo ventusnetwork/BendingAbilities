@@ -1,21 +1,25 @@
 package net.saifs.bendingabilities;
 
+import com.projectkorra.projectkorra.BendingPlayer;
+import com.projectkorra.projectkorra.Element;
 import com.projectkorra.projectkorra.ability.Ability;
 import com.projectkorra.projectkorra.ability.CoreAbility;
 import net.milkbowl.vault.permission.Permission;
 import net.saifs.bendingabilities.data.BADataFile;
+import net.saifs.bendingabilities.util.BAMethods;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.RegisteredServiceProvider;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class PlayerManager {
     public static final String PLAYER_DATA_SUBFOLDER = "player-data/";
 
     public boolean hasAbilityAccess(Player player, Ability ability) {
-        return player.isOp() || player.hasPermission("bending.ability." + ability.getName());
+        return player.hasPermission("bending.ability." + ability.getName());
     }
 
     public List<Ability> getAllowedAbilities(Player player) {
@@ -25,7 +29,7 @@ public class PlayerManager {
                 abilities.add(ability);
             }
         }
-        return abilities;
+        return filter(player, abilities);
     }
 
     public List<Ability> getBuyableAbilities(Player player) {
@@ -45,7 +49,12 @@ public class PlayerManager {
                 }
             }
         }
-        return abilities;
+        return filter(player, abilities);
+    }
+
+    @SuppressWarnings("unchecked")
+    public List<Ability> getCombinedList(Player player) {
+        return filter(player, BAMethods.combineLists(getAllowedAbilities(player), getBuyableAbilities(player), getUnavailableAbilities(player)));
     }
 
     public List<Ability> getUnavailableAbilities(Player player) {
@@ -59,7 +68,21 @@ public class PlayerManager {
             }
         }
 
-        return abilities;
+        return filter(player, abilities);
+    }
+
+    public List<Ability> filter(Player player, List<Ability> list) {
+        return list.stream().filter(ability -> hasPotential(player, ability)).collect(Collectors.toList());
+    }
+
+    private boolean hasPotential(Player player, Ability ability) {
+        if (!ability.isEnabled()) return false;
+        BendingPlayer bendingPlayer = BendingPlayer.getBendingPlayer(player);
+        if (bendingPlayer.hasElement(ability.getElement())) return true;
+        if (ability.getElement() instanceof Element.SubElement) {
+            return bendingPlayer.hasSubElement((Element.SubElement) ability.getElement());
+        }
+        return false;
     }
 
     public int getAbilityPoints(Player player) {

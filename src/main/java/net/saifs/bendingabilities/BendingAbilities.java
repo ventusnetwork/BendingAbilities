@@ -1,6 +1,7 @@
 package net.saifs.bendingabilities;
 
 import com.projectkorra.projectkorra.ability.Ability;
+import net.saifs.bendingabilities.gui.AbilitiesGUI;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.HashMap;
@@ -14,6 +15,7 @@ public final class BendingAbilities extends JavaPlugin {
 
     private static BendingAbilities instance;
     private static PlayerManager playerManager;
+    private static AbilitiesGUI abilitiesGUI;
 
     public static BendingAbilities getInstance() {
         return instance;
@@ -28,6 +30,11 @@ public final class BendingAbilities extends JavaPlugin {
         // Plugin startup logic
         instance = this;
         playerManager = new PlayerManager();
+        abilitiesGUI = new AbilitiesGUI(9);
+    }
+
+    public static AbilitiesGUI getAbilitiesGUI() {
+        return abilitiesGUI;
     }
 
     @Override

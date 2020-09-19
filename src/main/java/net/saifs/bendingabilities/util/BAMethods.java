@@ -1,8 +1,6 @@
 package net.saifs.bendingabilities.util;
 
-import com.projectkorra.projectkorra.ability.Ability;
 import net.md_5.bungee.api.ChatColor;
-import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 
 import java.util.ArrayList;
@@ -17,6 +15,7 @@ public class BAMethods {
         sender.sendMessage(colour(s));
     }
 
+    @SafeVarargs
     public static <T> List<T> combineLists(List<T>... lists) {
         List<T> list = new ArrayList<>();
         for (List<T> l : lists) {

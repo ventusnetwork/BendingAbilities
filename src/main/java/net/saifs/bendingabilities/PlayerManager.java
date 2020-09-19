@@ -5,16 +5,18 @@ import com.projectkorra.projectkorra.Element;
 import com.projectkorra.projectkorra.ability.Ability;
 import com.projectkorra.projectkorra.ability.CoreAbility;
 import net.milkbowl.vault.permission.Permission;
-import net.saifs.bendingabilities.data.BADataFile;
 import net.saifs.bendingabilities.util.BAMethods;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.RegisteredServiceProvider;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
+@SuppressWarnings("ALL")
 public class PlayerManager {
     public static final String PLAYER_DATA_SUBFOLDER = "player-data/";
 
@@ -24,17 +26,19 @@ public class PlayerManager {
 
     public List<Ability> getAllowedAbilities(Player player) {
         List<Ability> abilities = new ArrayList<>();
-        for (Ability ability : CoreAbility.getAbilities()) {
+        for (Ability ability : getPotentialAbilities(player)) {
             if (hasAbilityAccess(player, ability)) {
                 abilities.add(ability);
             }
         }
-        return filter(player, abilities);
+        return abilities;
     }
 
     public List<Ability> getBuyableAbilities(Player player) {
         List<Ability> abilities = new ArrayList<>();
-        for (List<Ability> requiredList : BendingAbilities.abilitiesMap.keySet()) {
+        final List<Ability> bendingAbilitiesList = getPotentialAbilities(player).stream()
+                .filter(coreAbility -> BendingAbilities.prices.containsKey(coreAbility)).collect(Collectors.toList());
+        for (List<Ability> requiredList : BendingAbilities.abilityTree.keySet()) {
             boolean meetsRequirement = true;
             for (Ability required : requiredList) {
                 if (!hasAbilityAccess(player, required)) {
@@ -42,19 +46,21 @@ public class PlayerManager {
                 }
             }
             if (meetsRequirement) {
-                for (Ability reward : BendingAbilities.abilitiesMap.get(requiredList)) {
+                for (Ability reward : BendingAbilities.abilityTree.get(requiredList)) {
+                    bendingAbilitiesList.remove(reward);
                     if (!hasAbilityAccess(player, reward)) {
                         abilities.add(reward);
                     }
                 }
             }
         }
-        return filter(player, abilities);
+        bendingAbilitiesList.removeIf(ability -> hasAbilityAccess(player, ability));
+        return BAMethods.combineLists(abilities, bendingAbilitiesList);
     }
 
     @SuppressWarnings("unchecked")
     public List<Ability> getCombinedList(Player player) {
-        return filter(player, BAMethods.combineLists(getAllowedAbilities(player), getBuyableAbilities(player), getUnavailableAbilities(player)));
+        return BAMethods.combineLists(getAllowedAbilities(player), getBuyableAbilities(player), getUnavailableAbilities(player));
     }
 
     public List<Ability> getUnavailableAbilities(Player player) {
@@ -62,17 +68,24 @@ public class PlayerManager {
         List<Ability> buyable = getBuyableAbilities(player);
         List<Ability> allowed = getAllowedAbilities(player);
 
-        for (Ability ability : CoreAbility.getAbilities()) {
+        for (Ability ability : getPotentialAbilities(player)) {
             if (!allowed.contains(ability) && !buyable.contains(ability)) {
                 abilities.add(ability);
             }
         }
 
-        return filter(player, abilities);
+        return abilities;
     }
 
-    public List<Ability> filter(Player player, List<Ability> list) {
-        return list.stream().filter(ability -> hasPotential(player, ability)).collect(Collectors.toList());
+    public List<Ability> getPotentialAbilities(Player player) {
+        List<Ability> list = CoreAbility.getAbilities().stream().filter(ability -> hasPotential(player, ability)).collect(Collectors.toList());
+        Map<String, Ability> map = new HashMap<>();
+        for (Ability ability : list) {
+            if (!map.containsKey(ability.getName())) {
+                map.put(ability.getName(), ability);
+            }
+        }
+        return new ArrayList<>(map.values());
     }
 
     private boolean hasPotential(Player player, Ability ability) {
@@ -85,20 +98,7 @@ public class PlayerManager {
         return false;
     }
 
-    public int getAbilityPoints(Player player) {
-        BADataFile dataFile = getPlayerDataFile(player);
-        return dataFile.getConfig().getInt("ability-points");
-    }
-
-    public BADataFile getPlayerDataFile(Player player) {
-        String name = PLAYER_DATA_SUBFOLDER + player.getUniqueId().toString();
-        BADataFile dataFile = BADataFile.dataFiles.containsKey(name) ? BADataFile.dataFiles.get(name) : new BADataFile(name);
-        dataFile.setDefaults("player-data.yml");
-        return dataFile;
-    }
-
     public void setAbilityAccess(Player player, Ability ability, boolean value) {
-        // TODO: VaultAPI, mutate permission ( "bending.ability." + ability.getName().toLowerCase() ) to `value`
         RegisteredServiceProvider<Permission> rsp = Bukkit.getServer().getServicesManager().getRegistration(Permission.class);
         if (rsp == null) return;
         Permission perm = rsp.getProvider();

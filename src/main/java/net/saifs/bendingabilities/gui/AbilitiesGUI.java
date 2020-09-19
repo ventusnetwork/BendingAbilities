@@ -36,6 +36,8 @@ public class AbilitiesGUI implements Listener {
     public void onInteract(PlayerInteractEvent e) {
         if (e.getPlayer().isSneaking()) {
             open(e.getPlayer());
+        } else {
+            BendingAbilities.getPlayerManager().getUnavailableAbilities(e.getPlayer());
         }
     }
 

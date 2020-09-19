@@ -1,21 +1,24 @@
 package net.saifs.bendingabilities;
 
 import com.projectkorra.projectkorra.ability.Ability;
+import com.projectkorra.projectkorra.ability.CoreAbility;
+import net.saifs.bendingabilities.data.BAConfig;
 import net.saifs.bendingabilities.gui.AbilitiesGUI;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public final class BendingAbilities extends JavaPlugin {
     // requirements: rewards
-    public static Map<List<Ability>, List<Ability>> abilitiesMap = new HashMap<>();
-    public static Map<Ability, Integer> prices = new HashMap<>();
+    public static Map<List<Ability>, List<Ability>> abilityTree = new HashMap<>();
 
+    public static Map<Ability, Integer> prices = new HashMap<>();
     private static BendingAbilities instance;
     private static PlayerManager playerManager;
     private static AbilitiesGUI abilitiesGUI;
+    private int defaultPrice;
+    private BAConfig config;
 
     public static BendingAbilities getInstance() {
         return instance;
@@ -25,16 +28,75 @@ public final class BendingAbilities extends JavaPlugin {
         return playerManager;
     }
 
+    public static AbilitiesGUI getAbilitiesGUI() {
+        return abilitiesGUI;
+    }
+
     @Override
     public void onEnable() {
         // Plugin startup logic
         instance = this;
         playerManager = new PlayerManager();
         abilitiesGUI = new AbilitiesGUI(9);
+
+        loadConfig();
+        loadAbilityTree();
+        loadPrices();
     }
 
-    public static AbilitiesGUI getAbilitiesGUI() {
-        return abilitiesGUI;
+    public int getPrice(Ability ability) {
+        if (prices.containsKey(ability)) {
+            return prices.get(ability);
+        }
+        return defaultPrice;
+    }
+
+    private void loadConfig() {
+        config = new BAConfig("config.yml");
+    }
+
+    private void loadPrices() {
+        ConfigurationSection section = config.getConfig().getConfigurationSection("prices");
+        if (section == null) return;
+        for (String key : section.getKeys(false)) {
+            if (key.equalsIgnoreCase("default")) {
+                defaultPrice = section.getInt("default");
+                continue;
+            }
+            Ability ability = CoreAbility.getAbility(key);
+            if (ability != null) {
+                prices.put(ability, section.getInt(key));
+            }
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void loadAbilityTree() {
+        List<?> list = config.getConfig().getList("ability-tree");
+        if (list == null) return;
+        for (Object obj : list) {
+            if (obj instanceof LinkedHashMap) {
+                LinkedHashMap<String, ?> map = (LinkedHashMap<String, ?>) obj;
+                if (!map.containsKey("requirements") || !map.containsKey("rewards")) {
+                    continue;
+                }
+                List<Ability> requirements = new ArrayList<>();
+                List<Ability> rewards = new ArrayList<>();
+                for (String s : (List<String>) map.get("requirements")) {
+                    Ability ability = CoreAbility.getAbility(s);
+                    if (ability != null) {
+                        requirements.add(ability);
+                    }
+                }
+                for (String s : (List<String>) map.get("rewards")) {
+                    Ability ability = CoreAbility.getAbility(s);
+                    if (ability != null) {
+                        rewards.add(ability);
+                    }
+                }
+                abilityTree.put(requirements, rewards);
+            }
+        }
     }
 
     @Override
@@ -49,3 +111,4 @@ public final class BendingAbilities extends JavaPlugin {
         this.getServer().getPluginManager().enablePlugin(this);
     }
 }
+

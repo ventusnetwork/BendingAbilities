@@ -5,6 +5,7 @@ import net.saifs.bendingabilities.BendingAbilities;
 import net.saifs.bendingabilities.PlayerManager;
 import net.saifs.bendingabilities.util.BAMethods;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -15,9 +16,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class AbilitiesGUI implements Listener {
     private final int size;
@@ -42,6 +41,10 @@ public class AbilitiesGUI implements Listener {
     }
 
     public void open(Player player) {
+        if (getMaxNumberOfPages(player) < 1) {
+            BAMethods.send(player, "&cYou must pick an element to do this!");
+            return;
+        }
         Inventory inv = construct(player, 0);
         player.openInventory(inv);
     }
@@ -96,11 +99,9 @@ public class AbilitiesGUI implements Listener {
         List<Ability> combined = pm.getCombinedList(player);
         Ability ability = calculateAbility(combined, page, slot);
         if (ability == null) return;
-        BAMethods.send(player, "&cYou clicked: &a" + ability.getName());
         int status = getAbilityStatus(player, ability);
         if (status == 1) {
-            player.sendMessage("uh you may want to buy " + ability.getName());
-            player.closeInventory();
+            player.openInventory(BendingAbilities.getInstance().getTransactionGUI().construct(ability));
         }
     }
 
@@ -131,16 +132,33 @@ public class AbilitiesGUI implements Listener {
 
     public ItemStack getItemStackFromAbility(Player player, Ability ability) {
         int status = getAbilityStatus(player, ability);
+        int price = BendingAbilities.getInstance().getPrice(ability);
         ItemStack itemStack = new ItemStack(Material.GRAY_WOOL, 1);
+        ChatColor chatColor = ChatColor.GRAY;
         if (status == 0) {
             itemStack = new ItemStack(Material.GREEN_WOOL, 1);
+            chatColor = ChatColor.GREEN;
         }
         if (status == 1) {
             itemStack = new ItemStack(Material.RED_WOOL, 1);
+            chatColor = ChatColor.RED;
         }
         ItemMeta meta = itemStack.getItemMeta();
         if (meta == null) return itemStack;
-        meta.setDisplayName(BAMethods.colour("&c" + ability.getName()));
+        meta.setDisplayName(BAMethods.colour(chatColor + ability.getName()));
+        if (status == 1)
+            meta.setLore(Collections.singletonList(BAMethods.colour("&c" + price + " experience levels.")));
+        if (status == 2) {
+            List<String> list = new ArrayList<>();
+            List<Ability> requirements = BendingAbilities.getInstance().getRequirements(ability);
+            if (requirements != null && requirements.size() != 0) {
+                list.add(BAMethods.colour("&8Requirements:"));
+                for (Ability a : requirements) {
+                    list.add(ChatColor.GRAY + a.getName());
+                }
+            }
+            meta.setLore(list);
+        }
         itemStack.setItemMeta(meta);
         return itemStack;
     }

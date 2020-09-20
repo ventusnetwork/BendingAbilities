@@ -4,6 +4,7 @@ import com.projectkorra.projectkorra.ability.Ability;
 import com.projectkorra.projectkorra.ability.CoreAbility;
 import net.saifs.bendingabilities.data.BAConfig;
 import net.saifs.bendingabilities.gui.AbilitiesGUI;
+import net.saifs.bendingabilities.gui.TransactionGUI;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -12,11 +13,13 @@ import java.util.*;
 public final class BendingAbilities extends JavaPlugin {
     // requirements: rewards
     public static Map<List<Ability>, List<Ability>> abilityTree = new HashMap<>();
-
     public static Map<Ability, Integer> prices = new HashMap<>();
+
     private static BendingAbilities instance;
     private static PlayerManager playerManager;
     private static AbilitiesGUI abilitiesGUI;
+    private TransactionGUI transactionGUI;
+
     private int defaultPrice;
     private BAConfig config;
 
@@ -32,12 +35,27 @@ public final class BendingAbilities extends JavaPlugin {
         return abilitiesGUI;
     }
 
+    public TransactionGUI getTransactionGUI() {
+        return transactionGUI;
+    }
+
+    public List<Ability> getRequirements(Ability ability) {
+        for (List<Ability> key : abilityTree.keySet()) {
+            List<Ability> value = abilityTree.get(key);
+            if (value.contains(ability)) {
+                return key;
+            }
+        }
+        return null;
+    }
+
     @Override
     public void onEnable() {
         // Plugin startup logic
         instance = this;
         playerManager = new PlayerManager();
         abilitiesGUI = new AbilitiesGUI(9);
+        transactionGUI = new TransactionGUI();
 
         loadConfig();
         loadAbilityTree();

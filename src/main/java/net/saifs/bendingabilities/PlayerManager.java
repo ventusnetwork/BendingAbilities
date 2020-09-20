@@ -63,12 +63,31 @@ public class PlayerManager {
         return BAMethods.combineLists(getAllowedAbilities(player), getBuyableAbilities(player), getUnavailableAbilities(player));
     }
 
+    public void purchase(Player player, Ability ability) {
+        // validate if players have enough
+        int price = BendingAbilities.getInstance().getPrice(ability);
+        if (player.getLevel() < price) {
+            BAMethods.send(player, "&cYou do not have enough experience levels for that!");
+            return;
+        }
+        player.setLevel(player.getLevel() - price);
+        setAbilityAccess(player, ability, true);
+        BAMethods.send(player, "&aYou bought " + ability.getName() + " for " + price + " experience levels!");
+    }
+
     public List<Ability> getUnavailableAbilities(Player player) {
         List<Ability> abilities = new ArrayList<>();
         List<Ability> buyable = getBuyableAbilities(player);
         List<Ability> allowed = getAllowedAbilities(player);
 
-        for (Ability ability : getPotentialAbilities(player)) {
+        List<Ability> potential = getPotentialAbilities(player);
+        for (Ability ability : potential) {
+            if (BendingAbilities.getInstance().getRequirements(ability) != null && !allowed.contains(ability) && !buyable.contains(ability)) {
+                abilities.add(ability);
+            }
+        }
+        potential.removeIf(ability -> BendingAbilities.getInstance().getRequirements(ability) != null);
+        for (Ability ability : potential) {
             if (!allowed.contains(ability) && !buyable.contains(ability)) {
                 abilities.add(ability);
             }
@@ -104,9 +123,9 @@ public class PlayerManager {
         Permission perm = rsp.getProvider();
         String node = "bending.ability." + ability.getName();
         if (value) {
-            perm.playerAdd(player, node);
+            perm.playerAdd(null, player, node);
         } else {
-            perm.playerRemove(player, node);
+            perm.playerRemove(null, player, node);
         }
     }
 }

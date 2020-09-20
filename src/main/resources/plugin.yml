@@ -1,7 +1,12 @@
 name: BendingAbilities
 version: ${project.version}
 main: net.saifs.bendingabilities.BendingAbilities
-api-version: 1.13
+api-version: "1.13"
 authors: [Saif]
 website: https://saif.blakwurm.com/
 depend: [Vault]
+commands:
+  bareload:
+    description: Reload command for BendingAbilities
+  abilitytree:
+    description: Ability tree command from BendingAbilities

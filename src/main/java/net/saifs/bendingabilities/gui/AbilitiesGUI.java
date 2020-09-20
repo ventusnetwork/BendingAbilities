@@ -30,16 +30,6 @@ public class AbilitiesGUI implements Listener {
                 .registerEvents(this, BendingAbilities.getInstance());
     }
 
-    // TODO: delete later this is a test
-    @EventHandler
-    public void onInteract(PlayerInteractEvent e) {
-        if (e.getPlayer().isSneaking()) {
-            open(e.getPlayer());
-        } else {
-            BendingAbilities.getPlayerManager().getUnavailableAbilities(e.getPlayer());
-        }
-    }
-
     public void open(Player player) {
         if (getMaxNumberOfPages(player) < 1) {
             BAMethods.send(player, "&cYou must pick an element to do this!");

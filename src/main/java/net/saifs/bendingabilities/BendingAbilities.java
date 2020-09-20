@@ -2,6 +2,8 @@ package net.saifs.bendingabilities;
 
 import com.projectkorra.projectkorra.ability.Ability;
 import com.projectkorra.projectkorra.ability.CoreAbility;
+import net.saifs.bendingabilities.command.AbilityTreeCommand;
+import net.saifs.bendingabilities.command.BAReloadCommand;
 import net.saifs.bendingabilities.data.BAConfig;
 import net.saifs.bendingabilities.gui.AbilitiesGUI;
 import net.saifs.bendingabilities.gui.TransactionGUI;
@@ -60,6 +62,7 @@ public final class BendingAbilities extends JavaPlugin {
         loadConfig();
         loadAbilityTree();
         loadPrices();
+        loadCommands();
     }
 
     public int getPrice(Ability ability) {
@@ -71,6 +74,11 @@ public final class BendingAbilities extends JavaPlugin {
 
     private void loadConfig() {
         config = new BAConfig("config.yml");
+    }
+
+    private void loadCommands() {
+        Objects.requireNonNull(getCommand("bareload")).setExecutor(new BAReloadCommand());
+        Objects.requireNonNull(getCommand("abilitytree")).setExecutor(new AbilityTreeCommand());
     }
 
     private void loadPrices() {

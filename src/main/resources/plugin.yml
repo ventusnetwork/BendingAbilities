@@ -10,3 +10,5 @@ commands:
     description: Reload command for BendingAbilities
   abilitytree:
     description: Ability tree command from BendingAbilities
+  elementchoose:
+    description: Element choose commands

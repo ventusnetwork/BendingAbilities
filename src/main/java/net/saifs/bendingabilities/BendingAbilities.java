@@ -4,8 +4,10 @@ import com.projectkorra.projectkorra.ability.Ability;
 import com.projectkorra.projectkorra.ability.CoreAbility;
 import net.saifs.bendingabilities.command.AbilityTreeCommand;
 import net.saifs.bendingabilities.command.BAReloadCommand;
+import net.saifs.bendingabilities.command.ElementChooseCommand;
 import net.saifs.bendingabilities.data.BAConfig;
 import net.saifs.bendingabilities.gui.AbilitiesGUI;
+import net.saifs.bendingabilities.gui.ElementChooseGUI;
 import net.saifs.bendingabilities.gui.TransactionGUI;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -19,8 +21,10 @@ public final class BendingAbilities extends JavaPlugin {
 
     private static BendingAbilities instance;
     private static PlayerManager playerManager;
+
     private static AbilitiesGUI abilitiesGUI;
     private TransactionGUI transactionGUI;
+    private ElementChooseGUI elementalChooseGUI;
 
     private int defaultPrice;
     private BAConfig config;
@@ -58,6 +62,7 @@ public final class BendingAbilities extends JavaPlugin {
         playerManager = new PlayerManager();
         abilitiesGUI = new AbilitiesGUI(9);
         transactionGUI = new TransactionGUI();
+        elementalChooseGUI = new ElementChooseGUI();
 
         loadConfig();
         loadAbilityTree();
@@ -72,6 +77,10 @@ public final class BendingAbilities extends JavaPlugin {
         return defaultPrice;
     }
 
+    public ElementChooseGUI getElementalChooseGUI() {
+        return elementalChooseGUI;
+    }
+
     private void loadConfig() {
         config = new BAConfig("config.yml");
     }
@@ -79,6 +88,7 @@ public final class BendingAbilities extends JavaPlugin {
     private void loadCommands() {
         Objects.requireNonNull(getCommand("bareload")).setExecutor(new BAReloadCommand());
         Objects.requireNonNull(getCommand("abilitytree")).setExecutor(new AbilityTreeCommand());
+        Objects.requireNonNull(getCommand("elementchoose")).setExecutor(new ElementChooseCommand());
     }
 
     private void loadPrices() {

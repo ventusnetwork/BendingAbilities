@@ -48,13 +48,13 @@ public class PlayerManager {
             if (meetsRequirement) {
                 for (Ability reward : BendingAbilities.abilityTree.get(requiredList)) {
                     bendingAbilitiesList.remove(reward);
-                    if (!hasAbilityAccess(player, reward)) {
+                    if (!hasAbilityAccess(player, reward) && hasPotential(player, reward)) {
                         abilities.add(reward);
                     }
                 }
             }
         }
-        bendingAbilitiesList.removeIf(ability -> hasAbilityAccess(player, ability));
+        bendingAbilitiesList.removeIf(ability -> hasAbilityAccess(player, ability) || !hasPotential(player, ability));
         return BAMethods.combineLists(abilities, bendingAbilitiesList);
     }
 
@@ -98,6 +98,7 @@ public class PlayerManager {
 
     public List<Ability> getPotentialAbilities(Player player) {
         List<Ability> list = CoreAbility.getAbilities().stream().filter(ability -> hasPotential(player, ability)).collect(Collectors.toList());
+
         Map<String, Ability> map = new HashMap<>();
         for (Ability ability : list) {
             if (!map.containsKey(ability.getName())) {
@@ -110,11 +111,10 @@ public class PlayerManager {
     private boolean hasPotential(Player player, Ability ability) {
         if (!ability.isEnabled()) return false;
         BendingPlayer bendingPlayer = BendingPlayer.getBendingPlayer(player);
-        if (bendingPlayer.hasElement(ability.getElement())) return true;
         if (ability.getElement() instanceof Element.SubElement) {
             return bendingPlayer.hasSubElement((Element.SubElement) ability.getElement());
         }
-        return false;
+        return bendingPlayer.hasElement(ability.getElement());
     }
 
     public void setAbilityAccess(Player player, Ability ability, boolean value) {

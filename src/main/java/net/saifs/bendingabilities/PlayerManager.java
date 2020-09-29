@@ -45,9 +45,9 @@ public class PlayerManager {
                     meetsRequirement = false;
                 }
             }
+            bendingAbilitiesList.removeIf(ability -> BendingAbilities.abilityTree.get(requiredList).contains(ability));
             if (meetsRequirement) {
                 for (Ability reward : BendingAbilities.abilityTree.get(requiredList)) {
-                    bendingAbilitiesList.remove(reward);
                     if (!hasAbilityAccess(player, reward) && hasPotential(player, reward)) {
                         abilities.add(reward);
                     }

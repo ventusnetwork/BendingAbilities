@@ -49,7 +49,8 @@ public class PlayerManager {
             if (meetsRequirement) {
                 for (Ability reward : BendingAbilities.abilityTree.get(requiredList)) {
                     if (!hasAbilityAccess(player, reward) && hasPotential(player, reward)) {
-                        abilities.add(reward);
+                        if (!abilities.contains(reward))
+                            abilities.add(reward);
                     }
                 }
             }

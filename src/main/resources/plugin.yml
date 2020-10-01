@@ -12,3 +12,5 @@ commands:
     description: Ability tree command from BendingAbilities
   elementchoose:
     description: Element choose commands
+  listabilities:
+    description: Lists the plugin's abilities.

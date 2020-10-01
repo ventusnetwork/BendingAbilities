@@ -5,6 +5,7 @@ import com.projectkorra.projectkorra.ability.CoreAbility;
 import net.saifs.bendingabilities.command.AbilityTreeCommand;
 import net.saifs.bendingabilities.command.BAReloadCommand;
 import net.saifs.bendingabilities.command.ElementChooseCommand;
+import net.saifs.bendingabilities.command.ListAbilitiesCommand;
 import net.saifs.bendingabilities.data.BAConfig;
 import net.saifs.bendingabilities.gui.AbilitiesGUI;
 import net.saifs.bendingabilities.gui.ElementChooseGUI;
@@ -89,6 +90,7 @@ public final class BendingAbilities extends JavaPlugin {
         Objects.requireNonNull(getCommand("bareload")).setExecutor(new BAReloadCommand());
         Objects.requireNonNull(getCommand("abilitytree")).setExecutor(new AbilityTreeCommand());
         Objects.requireNonNull(getCommand("elementchoose")).setExecutor(new ElementChooseCommand());
+        Objects.requireNonNull(getCommand("listabilities")).setExecutor(new ListAbilitiesCommand());
     }
 
     private void loadPrices() {

@@ -13,14 +13,36 @@ public class ListAbilitiesCommand implements CommandExecutor {
             BAMethods.send(sender, "&cYou do not have permission to do that!");
             return true;
         }
+
+        boolean json = false;
+
+        if (args.length > 0 && args[0].equalsIgnoreCase("json")) {
+            json = true;
+        }
         StringBuilder list = new StringBuilder();
+        if (json) {
+            list.append("{\"raw\": [");
+        }
         for (int i = 0; i < CoreAbility.getAbilities().size(); i++) {
             CoreAbility coreAbility = CoreAbility.getAbilities().get(i);
-            list.append("&c").append(coreAbility.getName());
-            if (i != CoreAbility.getAbilities().size() - 1) {
-                list.append("&7, ");
+
+            if (!json) {
+                list.append("&c").append(coreAbility.getName());
+                if (i != CoreAbility.getAbilities().size() - 1) {
+                    list.append("&7, ");
+                }
+            } else {
+                list.append("\"").append(coreAbility.getName()).append("\"");
+                if (i < CoreAbility.getAbilities().size() - 1) {
+                    list.append(", ");
+                }
             }
         }
+
+        if (json) {
+            list.append("]}");
+        }
+
         BAMethods.send(sender, list.toString());
         return true;
     }

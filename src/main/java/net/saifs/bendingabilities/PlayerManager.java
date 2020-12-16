@@ -10,10 +10,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.RegisteredServiceProvider;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @SuppressWarnings("ALL")
@@ -34,29 +31,21 @@ public class PlayerManager {
         return abilities;
     }
 
+
     public List<Ability> getBuyableAbilities(Player player) {
-        List<Ability> abilities = new ArrayList<>();
-        final List<Ability> bendingAbilitiesList = getPotentialAbilities(player).stream()
-                .filter(coreAbility -> BendingAbilities.prices.containsKey(coreAbility)).collect(Collectors.toList());
+        List<Ability> list = getPotentialAbilities(player);
+        list.removeIf(ability -> BendingAbilities.getPrice(ability) < 0);
+        list.removeIf(ability -> hasAbilityAccess(player, ability));
         for (List<Ability> requiredList : BendingAbilities.abilityTree.keySet()) {
-            boolean meetsRequirement = true;
             for (Ability required : requiredList) {
                 if (!hasAbilityAccess(player, required)) {
-                    meetsRequirement = false;
-                }
-            }
-            bendingAbilitiesList.removeIf(ability -> BendingAbilities.abilityTree.get(requiredList).contains(ability));
-            if (meetsRequirement) {
-                for (Ability reward : BendingAbilities.abilityTree.get(requiredList)) {
-                    if (!hasAbilityAccess(player, reward) && hasPotential(player, reward)) {
-                        if (!abilities.contains(reward))
-                            abilities.add(reward);
+                    for (Ability reward : BendingAbilities.abilityTree.get(requiredList)) {
+                        list.removeIf(ability -> reward.getName().equals(ability.getName()));
                     }
                 }
             }
         }
-        bendingAbilitiesList.removeIf(ability -> hasAbilityAccess(player, ability) || !hasPotential(player, ability));
-        return BAMethods.combineLists(abilities, bendingAbilitiesList);
+        return list;
     }
 
     @SuppressWarnings("unchecked")
@@ -65,7 +54,6 @@ public class PlayerManager {
     }
 
     public void purchase(Player player, Ability ability) {
-        // validate if players have enough
         int price = BendingAbilities.getInstance().getPrice(ability);
         if (player.getLevel() < price) {
             BAMethods.send(player, "&cYou do not have enough experience levels for that!");
@@ -77,29 +65,16 @@ public class PlayerManager {
     }
 
     public List<Ability> getUnavailableAbilities(Player player) {
-        List<Ability> abilities = new ArrayList<>();
+        List<Ability> list = getPotentialAbilities(player);
         List<Ability> buyable = getBuyableAbilities(player);
         List<Ability> allowed = getAllowedAbilities(player);
-
-        List<Ability> potential = getPotentialAbilities(player);
-        for (Ability ability : potential) {
-            if (BendingAbilities.getInstance().getRequirements(ability) != null && !allowed.contains(ability) && !buyable.contains(ability)) {
-                abilities.add(ability);
-            }
-        }
-        potential.removeIf(ability -> BendingAbilities.getInstance().getRequirements(ability) != null);
-        for (Ability ability : potential) {
-            if (!allowed.contains(ability) && !buyable.contains(ability)) {
-                abilities.add(ability);
-            }
-        }
-
-        return abilities;
+        list.removeIf(ability -> buyable.contains(ability) || allowed.contains(ability));
+        return list;
     }
 
     public List<Ability> getPotentialAbilities(Player player) {
-        List<Ability> list = CoreAbility.getAbilities().stream().filter(ability -> hasPotential(player, ability)).collect(Collectors.toList());
-
+        List<Ability> list = CoreAbility.getAbilities().stream().filter(ability -> hasPotential(player, ability))
+                .collect(Collectors.toList());
         Map<String, Ability> map = new HashMap<>();
         for (Ability ability : list) {
             if (!map.containsKey(ability.getName())) {

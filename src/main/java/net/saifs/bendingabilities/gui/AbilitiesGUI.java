@@ -11,7 +11,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -89,8 +88,8 @@ public class AbilitiesGUI implements Listener {
         List<Ability> combined = pm.getCombinedList(player);
         Ability ability = calculateAbility(combined, page, slot);
         if (ability == null) return;
-        int status = getAbilityStatus(player, ability);
-        if (status == 1) {
+        AbilityStatus status = getAbilityStatus(player, ability);
+        if (status == AbilityStatus.BUYABLE) {
             player.openInventory(BendingAbilities.getInstance().getTransactionGUI().construct(ability));
         }
     }
@@ -111,37 +110,43 @@ public class AbilitiesGUI implements Listener {
     2 = hidden
      */
     // TODO: all these surrogate functions lmao kill me haha
-    public int getAbilityStatus(Player player, Ability ability) {
+    public AbilityStatus getAbilityStatus(Player player, Ability ability) {
         PlayerManager pm = BendingAbilities.getPlayerManager();
         List<Ability> allowed = pm.getAllowedAbilities(player);
         List<Ability> buyable = pm.getBuyableAbilities(player);
-        if (allowed.contains(ability)) return 0;
-        if (buyable.contains(ability)) return 1;
-        return 2;
+        if (allowed.contains(ability)) return AbilityStatus.ALLOWED;
+        if (buyable.contains(ability)) return AbilityStatus.BUYABLE;
+        return AbilityStatus.HIDDEN;
+    }
+
+    private enum AbilityStatus {
+        ALLOWED, BUYABLE, HIDDEN
     }
 
     public ItemStack getItemStackFromAbility(Player player, Ability ability) {
-        int status = getAbilityStatus(player, ability);
+        AbilityStatus status = getAbilityStatus(player, ability);
         int price = BendingAbilities.getInstance().getPrice(ability);
         ItemStack itemStack = new ItemStack(Material.GRAY_WOOL, 1);
         ChatColor chatColor = ChatColor.GRAY;
-        if (status == 0) {
+        if (status == AbilityStatus.ALLOWED) {
             itemStack = new ItemStack(Material.GREEN_WOOL, 1);
             chatColor = ChatColor.GREEN;
         }
-        if (status == 1) {
+        if (status == AbilityStatus.BUYABLE) {
             itemStack = new ItemStack(Material.RED_WOOL, 1);
             chatColor = ChatColor.RED;
         }
         ItemMeta meta = itemStack.getItemMeta();
         if (meta == null) return itemStack;
         meta.setDisplayName(BAMethods.colour(chatColor + ability.getName()));
-        if (status == 1)
-            meta.setLore(Collections.singletonList(BAMethods.colour("&c" + price + " experience levels.")));
-        if (status == 2) {
+        if (status == AbilityStatus.BUYABLE)
+            meta.setLore(Collections.singletonList(BAMethods.colour("&cPrice: " + price + " experience levels.")));
+        if (status == AbilityStatus.HIDDEN) {
             List<String> list = new ArrayList<>();
             List<Ability> requirements = BendingAbilities.getInstance().getRequirements(ability);
             if (requirements != null && requirements.size() != 0) {
+                list.add(BAMethods.colour("&7Price: " + price + " experience levels."));
+                list.add("");
                 list.add(BAMethods.colour("&8Requirements:"));
                 for (Ability a : requirements) {
                     list.add(ChatColor.GRAY + a.getName());
@@ -152,7 +157,6 @@ public class AbilitiesGUI implements Listener {
         itemStack.setItemMeta(meta);
         return itemStack;
     }
-
 
     public ItemStack getPageArrow(boolean forward) {
         ItemStack i = new ItemStack(Material.ARROW, 1);
@@ -171,3 +175,4 @@ public class AbilitiesGUI implements Listener {
     }
 
 }
+

@@ -18,7 +18,7 @@ import java.util.*;
 public final class BendingAbilities extends JavaPlugin {
     // requirements: rewards
     public static Map<List<Ability>, List<Ability>> abilityTree = new HashMap<>();
-    public static Map<Ability, Integer> prices = new HashMap<>();
+    private static Map<String, Integer> prices = new HashMap<>();
 
     private static BendingAbilities instance;
     private static PlayerManager playerManager;
@@ -27,7 +27,6 @@ public final class BendingAbilities extends JavaPlugin {
     private TransactionGUI transactionGUI;
     private ElementChooseGUI elementalChooseGUI;
 
-    private int defaultPrice;
     private BAConfig config;
 
     public static BendingAbilities getInstance() {
@@ -71,11 +70,11 @@ public final class BendingAbilities extends JavaPlugin {
         loadCommands();
     }
 
-    public int getPrice(Ability ability) {
-        if (prices.containsKey(ability)) {
-            return prices.get(ability);
+    public static int getPrice(Ability ability) {
+        if (prices.containsKey(ability.getName())) {
+            return prices.get(ability.getName());
         }
-        return defaultPrice;
+        return -1;
     }
 
     public ElementChooseGUI getElementalChooseGUI() {
@@ -97,13 +96,9 @@ public final class BendingAbilities extends JavaPlugin {
         ConfigurationSection section = config.getConfig().getConfigurationSection("prices");
         if (section == null) return;
         for (String key : section.getKeys(false)) {
-            if (key.equalsIgnoreCase("default")) {
-                defaultPrice = section.getInt("default");
-                continue;
-            }
             Ability ability = CoreAbility.getAbility(key);
             if (ability != null) {
-                prices.put(ability, section.getInt(key));
+                prices.put(ability.getName(), section.getInt(key));
             }
         }
     }

@@ -32,16 +32,37 @@ public class PlayerManager {
     }
 
 
+//    public List<Ability> getBuyableAbilities(Player player) {
+//        List<Ability> list = getPotentialAbilities(player);
+//        list.removeIf(ability -> BendingAbilities.getPrice(ability) < 0);
+//        list.removeIf(ability -> hasAbilityAccess(player, ability));
+//        for (List<Ability> requiredList : BendingAbilities.abilityTree.keySet()) {
+//            for (Ability required : requiredList) {
+//                if (!hasAbilityAccess(player, required)) {
+//                    for (Ability reward : BendingAbilities.abilityTree.get(requiredList)) {
+//                        list.removeIf(ability -> ability.getName().equals(reward.getName()));
+//                    }
+//                }
+//            }
+//        }
+//        return list;
+//    }
+
     public List<Ability> getBuyableAbilities(Player player) {
-        List<Ability> list = getPotentialAbilities(player);
-        list.removeIf(ability -> BendingAbilities.getPrice(ability) < 0);
-        list.removeIf(ability -> hasAbilityAccess(player, ability));
-        for (List<Ability> requiredList : BendingAbilities.abilityTree.keySet()) {
-            for (Ability required : requiredList) {
+        List<Ability> list = new ArrayList<>();
+        for (List<Ability> requiredAbilities : BendingAbilities.abilityTree.keySet()) {
+            boolean meetsRequirements = true;
+            for (Ability required : requiredAbilities) {
                 if (!hasAbilityAccess(player, required)) {
-                    for (Ability reward : BendingAbilities.abilityTree.get(requiredList)) {
-                        list.removeIf(ability -> reward.getName().equals(ability.getName()));
-                    }
+                    meetsRequirements = false;
+                    break;
+                }
+            }
+            if (!meetsRequirements) continue;
+            for (Ability reward : BendingAbilities.abilityTree.get(requiredAbilities)) {
+                if (hasPotential(player, reward) && !hasAbilityAccess(player, reward)
+                        && BendingAbilities.prices.get(reward) > 0) {
+                    list.add(reward);
                 }
             }
         }
@@ -81,7 +102,7 @@ public class PlayerManager {
                 map.put(ability.getName(), ability);
             }
         }
-        return new ArrayList<>(map.values());
+        return map.values().stream().filter(ability -> BendingAbilities.prices.containsKey(ability.getName())).collect(Collectors.toList());
     }
 
     private boolean hasPotential(Player player, Ability ability) {
@@ -93,15 +114,28 @@ public class PlayerManager {
         return bendingPlayer.hasElement(ability.getElement());
     }
 
-    public void setAbilityAccess(Player player, Ability ability, boolean value) {
+    public void setPermissionNode(Player player, String node, boolean value) {
         RegisteredServiceProvider<Permission> rsp = Bukkit.getServer().getServicesManager().getRegistration(Permission.class);
         if (rsp == null) return;
         Permission perm = rsp.getProvider();
-        String node = "bending.ability." + ability.getName();
         if (value) {
             perm.playerAdd(null, player, node);
         } else {
             perm.playerRemove(null, player, node);
         }
+    }
+
+    public boolean abilityHasSubsets(Ability ability) {
+        List<String> list = Arrays.asList("WaterArms", "WaterSpout");
+        return list.contains(ability.getName());
+    }
+
+    public void setAbilityAccess(Player player, Ability ability, boolean value) {
+        String node = "bending.ability." + ability.getName();
+        setPermissionNode(player, node, value);
+        if (abilityHasSubsets(ability)) {
+            setPermissionNode(player, node + ".*", value);
+        }
+        BendingPlayer bendingPlayer = BendingPlayer.getBendingPlayer(player);
     }
 }

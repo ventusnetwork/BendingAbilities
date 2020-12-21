@@ -85,8 +85,6 @@ public class ListAbilitiesCommand implements CommandExecutor {
 
     private boolean hasAbility(Ability ability, Element element) {
         if (!ability.isEnabled()) return false;
-        if (ability.getElement() instanceof Element.SubElement)
-            return ability.getElement() == element;
         return ability.getElement() == element;
     }
 }

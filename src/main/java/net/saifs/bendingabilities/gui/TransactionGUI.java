@@ -66,11 +66,13 @@ public class TransactionGUI implements Listener {
         Ability ability = CoreAbility.getAbility(e.getView().getTitle().substring(PREFIX.length()));
         if (ability != null && Arrays.equals(e.getClickedInventory().getContents(), construct(ability).getContents())) {
             e.setCancelled(true);
+            Player player = (Player) e.getWhoClicked();
             if (confirmSlots.contains(e.getSlot())) {
-                BendingAbilities.getPlayerManager().purchase((Player) e.getWhoClicked(), ability);
-                e.getWhoClicked().closeInventory();
-            } else if (cancelSlots.contains(e.getSlot())) {
-                e.getWhoClicked().closeInventory();
+                BendingAbilities.getPlayerManager().purchase(player, ability);
+                BendingAbilities.getAbilitiesGUI().open(player);
+            }
+            if (cancelSlots.contains(e.getSlot())) {
+                BendingAbilities.getAbilitiesGUI().open(player);
             }
         }
     }
@@ -120,7 +122,7 @@ public class TransactionGUI implements Listener {
         ItemMeta abilityStarMeta = abilityStar.getItemMeta();
         if (abilityStarMeta == null) return inv;
         abilityStarMeta.setDisplayName(BAMethods.colour("&c" + ability.getName()));
-        abilityStarMeta.setLore(Collections.singletonList(BAMethods.colour("&c" + BendingAbilities.getInstance().getPrice(ability) + " experience levels.")));
+        abilityStarMeta.setLore(Collections.singletonList(BAMethods.colour("&c" + BendingAbilities.getPrice(ability) + " experience levels.")));
         abilityStar.setItemMeta(abilityStarMeta);
 
         inv.setItem(3, blackGlass);

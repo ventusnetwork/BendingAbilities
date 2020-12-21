@@ -18,7 +18,7 @@ import java.util.*;
 public final class BendingAbilities extends JavaPlugin {
     // requirements: rewards
     public static Map<List<Ability>, List<Ability>> abilityTree = new HashMap<>();
-    private static Map<String, Integer> prices = new HashMap<>();
+    public static Map<String, Integer> prices = new HashMap<>();
 
     private static BendingAbilities instance;
     private static PlayerManager playerManager;

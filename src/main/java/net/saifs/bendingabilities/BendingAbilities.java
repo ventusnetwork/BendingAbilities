@@ -60,7 +60,7 @@ public final class BendingAbilities extends JavaPlugin {
         // Plugin startup logic
         instance = this;
         playerManager = new PlayerManager();
-        abilitiesGUI = new AbilitiesGUI(9);
+        abilitiesGUI = new AbilitiesGUI(27);
         transactionGUI = new TransactionGUI();
         elementalChooseGUI = new ElementChooseGUI();
 

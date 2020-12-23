@@ -32,37 +32,16 @@ public class PlayerManager {
     }
 
 
-//    public List<Ability> getBuyableAbilities(Player player) {
-//        List<Ability> list = getPotentialAbilities(player);
-//        list.removeIf(ability -> BendingAbilities.getPrice(ability) < 0);
-//        list.removeIf(ability -> hasAbilityAccess(player, ability));
-//        for (List<Ability> requiredList : BendingAbilities.abilityTree.keySet()) {
-//            for (Ability required : requiredList) {
-//                if (!hasAbilityAccess(player, required)) {
-//                    for (Ability reward : BendingAbilities.abilityTree.get(requiredList)) {
-//                        list.removeIf(ability -> ability.getName().equals(reward.getName()));
-//                    }
-//                }
-//            }
-//        }
-//        return list;
-//    }
-
     public List<Ability> getBuyableAbilities(Player player) {
-        List<Ability> list = new ArrayList<>();
-        for (List<Ability> requiredAbilities : BendingAbilities.abilityTree.keySet()) {
-            boolean meetsRequirements = true;
-            for (Ability required : requiredAbilities) {
+        List<Ability> list = getPotentialAbilities(player);
+        list.removeIf(ability -> BendingAbilities.getPrice(ability) < 0);
+        list.removeIf(ability -> hasAbilityAccess(player, ability));
+        for (List<Ability> requiredList : BendingAbilities.abilityTree.keySet()) {
+            for (Ability required : requiredList) {
                 if (!hasAbilityAccess(player, required)) {
-                    meetsRequirements = false;
-                    break;
-                }
-            }
-            if (!meetsRequirements) continue;
-            for (Ability reward : BendingAbilities.abilityTree.get(requiredAbilities)) {
-                if (hasPotential(player, reward) && !hasAbilityAccess(player, reward)
-                        && BendingAbilities.prices.get(reward) > 0) {
-                    list.add(reward);
+                    for (Ability reward : BendingAbilities.abilityTree.get(requiredList)) {
+                        list.removeIf(ability -> ability.getName().equals(reward.getName()));
+                    }
                 }
             }
         }

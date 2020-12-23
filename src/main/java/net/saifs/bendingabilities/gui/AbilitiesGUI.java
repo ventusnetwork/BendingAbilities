@@ -125,7 +125,7 @@ public class AbilitiesGUI implements Listener {
 
     public ItemStack getItemStackFromAbility(Player player, Ability ability) {
         AbilityStatus status = getAbilityStatus(player, ability);
-        int price = BendingAbilities.getInstance().getPrice(ability);
+        int price = BendingAbilities.getPrice(ability);
         ItemStack itemStack = new ItemStack(Material.GRAY_WOOL, 1);
         ChatColor chatColor = ChatColor.GRAY;
         if (status == AbilityStatus.ALLOWED) {
@@ -175,4 +175,3 @@ public class AbilitiesGUI implements Listener {
     }
 
 }
-

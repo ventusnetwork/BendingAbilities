@@ -42,6 +42,7 @@ public class PlayerManager {
                     for (Ability reward : BendingAbilities.abilityTree.get(requiredList)) {
                         list.removeIf(ability -> ability.getName().equals(reward.getName()));
                     }
+                    break;
                 }
             }
         }
